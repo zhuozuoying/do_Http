@@ -1,0 +1,49 @@
+{
+  "ID": "Do_Http",
+  "IsContainer": "0",
+  "Type": "MM",
+  "Name": "Http请求",
+  "Version": "内部组件",
+  "Description": "支持http/https请求服务",
+  "Icon": "",
+  "IOS": {
+    "Support": 0,
+    "MinVersion": ""
+  },
+  "Android": {
+    "Support": 1,
+    "MinVersion": "4.0"
+  },
+  "Windows": {
+    "Support": 0,
+    "MinVersion": ""
+  },
+  "WindowsPhone": {
+    "Support": 0,
+    "MinVersion": ""
+  },
+  "Html": {
+    "Support": 1,
+    "MinVersion": "5.0"
+  },
+  "Properties": [],
+  "Events": [
+    {
+      "ID": "response",
+      "Description": "响应请求结果事件",
+      "ReturnType": "String",
+      "ReturnDesc": ""
+    }
+  ],
+  "syncMethodes": [
+    {
+      "ID": "request",
+      "Name": "请求",
+      "Description": "发送请求",
+      "ReturnType": "String",
+      "ReturnDesc": "",
+      "Paras": []
+    }
+  ],
+  "asyncMethodes": []
+}
