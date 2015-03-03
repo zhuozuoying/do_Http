@@ -14,11 +14,11 @@
 		<string>https://github.com/deviceone/do_Http.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>src/iOS/doExt_Do_Http/DoExt_Http_MM/DoExt_Http_MM.xcodeproj</string>
+	<string>src/iOS/DoExt_Http_MM/DoExt_Http_MM.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>E5F1E90D1E7A3F6F3322070864C37B2432285A04</key>
-		<string>../../../../../..</string>
+		<string>../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/deviceone/do_Http.git</string>
