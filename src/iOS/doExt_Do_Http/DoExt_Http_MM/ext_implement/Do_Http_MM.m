@@ -15,15 +15,12 @@
 #import "doUIModuleHelper.h"
 #import "doIOHelper.h"
 
-
 @implementation Do_Http_MM
 {
-    
     NSString *_url;
     NSURLConnection *_connection;
     NSMutableData *_downData;
     doInvokeResult *_invokeResult;
-    
 }
 
 #pragma mark - 注册属性（--属性定义--）
@@ -99,7 +96,6 @@
      {
          NSLog(@"请求模式未知!");
      }
-
  }
 #pragma mark - connection
 
@@ -149,6 +145,5 @@
     _downData = nil;
     _invokeResult = nil;
 }
-
 
 @end

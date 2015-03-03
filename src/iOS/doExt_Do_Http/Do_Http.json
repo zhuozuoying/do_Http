@@ -1,49 +1,49 @@
 {
-  "ID": "Do_Http",
-  "IsContainer": "0",
-  "Type": "MM",
-  "Name": "Http请求",
-  "Version": "内部组件",
-  "Description": "支持http/https请求服务",
-  "Icon": "",
-  "IOS": {
-    "Support": 0,
-    "MinVersion": ""
+  "Android" : {
+    "MinVersion" : "4.0",
+    "Support" : 1
   },
-  "Android": {
-    "Support": 1,
-    "MinVersion": "4.0"
-  },
-  "Windows": {
-    "Support": 0,
-    "MinVersion": ""
-  },
-  "WindowsPhone": {
-    "Support": 0,
-    "MinVersion": ""
-  },
-  "Html": {
-    "Support": 1,
-    "MinVersion": "5.0"
-  },
-  "Properties": [],
-  "Events": [
+  "Description" : "支持http/https请求服务",
+  "Events" : [
     {
-      "ID": "response",
-      "Description": "响应请求结果事件",
-      "ReturnType": "String",
-      "ReturnDesc": ""
+      "Description" : "响应请求结果事件",
+      "ID" : "response",
+      "ReturnDesc" : "",
+      "ReturnType" : "String"
     }
   ],
-  "syncMethodes": [
+  "Html" : {
+    "MinVersion" : "5.0",
+    "Support" : 1
+  },
+  "ID" : "Do_Http",
+  "IOS" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "Icon" : "",
+  "IsContainer" : "0",
+  "Name" : "Http请求",
+  "Properties" : [],
+  "Type" : "MM",
+  "Version" : "内部组件",
+  "Windows" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "WindowsPhone" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "asyncMethodes" : [],
+  "syncMethodes" : [
     {
-      "ID": "request",
-      "Name": "请求",
-      "Description": "发送请求",
-      "ReturnType": "String",
-      "ReturnDesc": "",
-      "Paras": []
+      "Description" : "发送请求",
+      "ID" : "request",
+      "Name" : "请求",
+      "Paras" : [],
+      "ReturnDesc" : "",
+      "ReturnType" : "String"
     }
-  ],
-  "asyncMethodes": []
+  ]
 }
