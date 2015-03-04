@@ -6,7 +6,7 @@
 //  Copyright (c) 2015年 DoExt. All rights reserved.
 //
 
-#import "Do_Http_MM.h"
+#import "DoExt_Http_MM.h"
 
 #import "doScriptEngineHelper.h"
 #import "doIScriptEngine.h"
@@ -15,7 +15,7 @@
 #import "doUIModuleHelper.h"
 #import "doIOHelper.h"
 
-@implementation Do_Http_MM
+@implementation DoExt_Http_MM
 {
     NSString *_url;
     NSURLConnection *_connection;
