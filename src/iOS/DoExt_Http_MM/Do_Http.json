@@ -1,0 +1,49 @@
+{
+  "Android" : {
+    "MinVersion" : "4.0",
+    "Support" : 1
+  },
+  "Description" : "支持http/https请求服务",
+  "Events" : [
+    {
+      "Description" : "响应请求结果事件",
+      "ID" : "response",
+      "ReturnDesc" : "",
+      "ReturnType" : "String"
+    }
+  ],
+  "Html" : {
+    "MinVersion" : "5.0",
+    "Support" : 1
+  },
+  "ID" : "Do_Http",
+  "IOS" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "Icon" : "",
+  "IsContainer" : "0",
+  "Name" : "Http请求",
+  "Properties" : [],
+  "Type" : "MM",
+  "Version" : "内部组件",
+  "Windows" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "WindowsPhone" : {
+    "MinVersion" : "",
+    "Support" : 0
+  },
+  "asyncMethodes" : [],
+  "syncMethodes" : [
+    {
+      "Description" : "发送请求",
+      "ID" : "request",
+      "Name" : "请求",
+      "Paras" : [],
+      "ReturnDesc" : "",
+      "ReturnType" : "String"
+    }
+  ]
+}

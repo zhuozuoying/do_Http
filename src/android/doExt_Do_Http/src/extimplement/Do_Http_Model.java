@@ -45,11 +45,13 @@ import extdefine.Do_Http_IMethod;
 import extdefine.Do_Http_MAbstract;
 
 /**
- * 自定义扩展API组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
+ * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
  * #如何调用组件自定义事件？可以通过如下方法触发事件：
- * this.model.getEventCenter().fireEvent(_messageName, jsonResult);
+ * this.model.getEventCenter().fireEvent(_messageName, jsonResult); <<<<<<< HEAD
  * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象； 获取DoInvokeResult对象方式new
- * DoInvokeResult();
+ * DoInvokeResult(); ======= 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象；
+ * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey()); >>>>>>>
+ * 50a51bf7939d205e8cf7e69a55124bd95bd912dc
  */
 public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod, DoIDataSource {
 
@@ -79,12 +81,19 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 	 * 
 	 * @_methodName 方法名称
 	 * @_dictParas 参数（K,V）
-	 * @_scriptEngine 当前page JS上下文环境
+	 * @_scriptEngine 当前page JS上下文环境 <<<<<<< HEAD
 	 * @_callbackFuncName 回调函数名 #如何执行异步方法回调？可以通过如下方法：
 	 *                    _scriptEngine.callback(_callbackFuncName,
 	 *                    _invokeResult);
 	 *                    参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
-	 *                    获取DoInvokeResult对象方式new DoInvokeResult();
+	 *                    获取DoInvokeResult对象方式new DoInvokeResult(); =======
+	 * @_callbackFuncName 回调函数名 #如何执行异步方法回调？可以通过如下方法：
+	 *                    _scriptEngine.callback(_callbackFuncName,
+	 *                    _invokeResult);
+	 *                    参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
+	 *                    获取DoInvokeResult对象方式new
+	 *                    DoInvokeResult(this.model.getUniqueKey()); >>>>>>>
+	 *                    50a51bf7939d205e8cf7e69a55124bd95bd912dc
 	 */
 	@Override
 	public boolean invokeAsyncMethod(String _methodName, DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, String _callbackFuncName) throws Exception {
@@ -229,4 +238,5 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 			_callback.doGetJsonCallBack(_jsonResultValue);
 		}
 	}
+
 }
