@@ -37,9 +37,7 @@ import org.apache.http.util.EntityUtils;
 import core.DoServiceContainer;
 import core.helper.DoTextHelper;
 import core.helper.jsonparse.DoJsonNode;
-import core.helper.jsonparse.DoJsonValue;
 import core.interfaces.DoIScriptEngine;
-import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
 import extdefine.Do_Http_IMethod;
 import extdefine.Do_Http_MAbstract;
@@ -47,63 +45,55 @@ import extdefine.Do_Http_MAbstract;
 /**
  * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
  * #如何调用组件自定义事件？可以通过如下方法触发事件：
- * this.model.getEventCenter().fireEvent(_messageName, jsonResult); <<<<<<< HEAD
- * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象； 获取DoInvokeResult对象方式new
- * DoInvokeResult(); ======= 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象；
- * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey()); >>>>>>>
- * 50a51bf7939d205e8cf7e69a55124bd95bd912dc
+ * this.model.getEventCenter().fireEvent(_messageName, jsonResult);
+ * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象；
+ * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey());
  */
-public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod, DoIDataSource {
+public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod{
 
 	public Do_Http_Model() throws Exception {
 		super();
 	}
-
+	
 	/**
 	 * 同步方法，JS脚本调用该组件对象方法时会被调用，可以根据_methodName调用相应的接口实现方法；
-	 * 
 	 * @_methodName 方法名称
 	 * @_dictParas 参数（K,V）
 	 * @_scriptEngine 当前Page JS上下文环境对象
 	 * @_invokeResult 用于返回方法结果对象
 	 */
 	@Override
-	public boolean invokeSyncMethod(String _methodName, DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, DoInvokeResult _invokeResult) throws Exception {
-		if ("request".equals(_methodName)) {
+	public boolean invokeSyncMethod(String _methodName, DoJsonNode _dictParas,
+			DoIScriptEngine _scriptEngine, DoInvokeResult _invokeResult)
+			throws Exception {
+		if("request".equals(_methodName)){
 			request(_dictParas, _scriptEngine, _invokeResult);
 		}
-		// ...do something
+		//...do something
 		return super.invokeSyncMethod(_methodName, _dictParas, _scriptEngine, _invokeResult);
 	}
-
+	
 	/**
-	 * 异步方法（通常都处理些耗时操作，避免UI线程阻塞），JS脚本调用该组件对象方法时会被调用， 可以根据_methodName调用相应的接口实现方法；
-	 * 
+	 * 异步方法（通常都处理些耗时操作，避免UI线程阻塞），JS脚本调用该组件对象方法时会被调用，
+	 * 可以根据_methodName调用相应的接口实现方法；
 	 * @_methodName 方法名称
 	 * @_dictParas 参数（K,V）
-	 * @_scriptEngine 当前page JS上下文环境 <<<<<<< HEAD
-	 * @_callbackFuncName 回调函数名 #如何执行异步方法回调？可以通过如下方法：
-	 *                    _scriptEngine.callback(_callbackFuncName,
-	 *                    _invokeResult);
-	 *                    参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
-	 *                    获取DoInvokeResult对象方式new DoInvokeResult(); =======
-	 * @_callbackFuncName 回调函数名 #如何执行异步方法回调？可以通过如下方法：
-	 *                    _scriptEngine.callback(_callbackFuncName,
-	 *                    _invokeResult);
-	 *                    参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
-	 *                    获取DoInvokeResult对象方式new
-	 *                    DoInvokeResult(this.model.getUniqueKey()); >>>>>>>
-	 *                    50a51bf7939d205e8cf7e69a55124bd95bd912dc
+	 * @_scriptEngine 当前page JS上下文环境
+	 * @_callbackFuncName 回调函数名
+	 * #如何执行异步方法回调？可以通过如下方法：
+	 * _scriptEngine.callback(_callbackFuncName, _invokeResult);
+	 * 参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
+	 * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey());
 	 */
 	@Override
-	public boolean invokeAsyncMethod(String _methodName, DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, String _callbackFuncName) throws Exception {
-		// ...do something
+	public boolean invokeAsyncMethod(String _methodName, DoJsonNode _dictParas,
+			DoIScriptEngine _scriptEngine, String _callbackFuncName) throws Exception {
+		//...do something
 		return super.invokeAsyncMethod(_methodName, _dictParas, _scriptEngine, _callbackFuncName);
 	}
 
 	/**
 	 * 请求；
-	 * 
 	 * @_dictParas 参数（K,V），可以通过此对象提供相关方法来获取参数值（Key：为参数名称）；
 	 * @_scriptEngine 当前Page JS上下文环境对象
 	 * @_invokeResult 用于返回方法结果对象
@@ -124,30 +114,30 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 			}
 		}).start();
 	}
-
-	private String doRequest() throws Exception {
+	
+	private String doRequest() throws Exception{
 		String method = getPropertyValue("method");
-		if (null == method || "".equals(method)) {
+		if(null == method || "".equals(method)){
 			throw new RuntimeException("请求类型方式失败，method：" + method);
 		}
 		String url = getPropertyValue("url");
-		if (null == url || "".equals(url)) {
+		if(null == url || "".equals(url)){
 			throw new RuntimeException("请求地址错误，url：" + url);
 		}
 		int timeout = DoTextHelper.strToInt(getPropertyValue("timeout"), 5000);
-		if ("post".equalsIgnoreCase(method)) {
+		if("post".equalsIgnoreCase(method)){
 			String contentType = getPropertyValue("contentType");
-			if (null == contentType || "".equals(contentType)) {
+			if(null == contentType || "".equals(contentType)){
 				contentType = "text/html";
 			}
 			String body = getPropertyValue("body");
 			return doPost(url, body, contentType, timeout);
-		} else if ("get".equalsIgnoreCase(method)) {
+		} else if("get".equalsIgnoreCase(method)){
 			return doGet(url, timeout);
 		}
 		throw new RuntimeException("请求类型方式失败，method：" + method);
 	}
-
+	
 	public HttpClient getHttpClient(int timeOut) throws Exception {
 		HttpClient httpClient = null;
 		KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -169,7 +159,7 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 		httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, schReg), params);
 		return httpClient;
 	}
-
+	
 	private String doGet(String url, int timeout) throws Exception {
 		HttpClient httpClient = getHttpClient(timeout);
 		HttpGet get = new HttpGet(url);
@@ -180,7 +170,7 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 		}
 		return EntityUtils.toString(response.getEntity(), "UTF-8");
 	}
-
+	
 	private String doPost(String url, String body, String contentType, int timeout) throws Exception {
 		HttpClient httpClient = getHttpClient(timeout);
 		HttpPost post = new HttpPost(url);
@@ -192,9 +182,9 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 		if (statusCode != 200) {
 			throw new RuntimeException("Post请求服务器失败，statusCode：" + statusCode);
 		}
-		return EntityUtils.toString(response.getEntity(), "utf-8");
+		return  EntityUtils.toString(response.getEntity(), "utf-8");
 	}
-
+	
 	class SSLSocketFactoryEx extends SSLSocketFactory {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 
@@ -213,7 +203,7 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 			return sslContext.getSocketFactory().createSocket();
 		}
 	}
-
+	
 	class MyTrustManager implements X509TrustManager {
 		@Override
 		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -228,15 +218,4 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,
 		public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
 		}
 	}
-
-	@Override
-	public void getJsonData(DoGetJsonCallBack _callback) throws Exception {
-		String _resultData = doRequest();
-		if (_resultData != null) {
-			DoJsonValue _jsonResultValue = new DoJsonValue();
-			_jsonResultValue.loadDataFromText(_resultData);
-			_callback.doGetJsonCallBack(_jsonResultValue);
-		}
-	}
-
 }
