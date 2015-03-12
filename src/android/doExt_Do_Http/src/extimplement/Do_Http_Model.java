@@ -37,7 +37,9 @@ import org.apache.http.util.EntityUtils;
 import core.DoServiceContainer;
 import core.helper.DoTextHelper;
 import core.helper.jsonparse.DoJsonNode;
+import core.helper.jsonparse.DoJsonValue;
 import core.interfaces.DoIScriptEngine;
+import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
 import extdefine.Do_Http_IMethod;
 import extdefine.Do_Http_MAbstract;
@@ -49,7 +51,7 @@ import extdefine.Do_Http_MAbstract;
  * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象；
  * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey());
  */
-public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod{
+public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,DoIDataSource{
 
 	public Do_Http_Model() throws Exception {
 		super();
@@ -217,5 +219,16 @@ public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod{
 		@Override
 		public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
 		}
+	}
+
+	@Override
+	public void getJsonData(DoGetJsonCallBack _callback) throws Exception {
+		String _resultData = doRequest();
+		if (_resultData != null) {
+			DoJsonValue _jsonResultValue = new DoJsonValue();
+			_jsonResultValue.loadDataFromText(_resultData);
+			_callback.doGetJsonCallBack(_jsonResultValue);
+		}
+		
 	}
 }
