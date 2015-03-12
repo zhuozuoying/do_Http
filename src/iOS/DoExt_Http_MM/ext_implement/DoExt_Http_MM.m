@@ -14,6 +14,8 @@
 
 #import "doUIModuleHelper.h"
 #import "doIOHelper.h"
+#import "doIDataSource.h"
+#import "doIPage.h"
 
 @implementation DoExt_Http_MM
 {
@@ -21,6 +23,7 @@
     NSURLConnection *_connection;
     NSMutableData *_downData;
     doInvokeResult *_invokeResult;
+    NSString *_jsonDatasStr;
 }
 
 #pragma mark - 注册属性（--属性定义--）
@@ -50,7 +53,28 @@
     [_downData setLength:0];
     _downData = nil;
     _invokeResult = nil;
+    _jsonDatasStr = nil;
 }
+
+#pragma mark -
+#pragma mark - override doIDataSource
+-(void) GetJsonData:(id<doGetJsonCallBack>) _callback
+{
+    if(_jsonDatasStr == nil || _jsonDatasStr.length<=0)
+        [NSException raise:@"doFileData" format:@"source无效！",nil];
+    @try
+    {
+        //这里暂时不考虑线程，读文件同步完成，以后可能需要改成异步
+        doJsonValue* _jsonResultValue = [[doJsonValue alloc]init];
+        [_jsonResultValue LoadDataFromText:_jsonDatasStr];
+        [_callback doGetJsonCallBack:_jsonResultValue];
+    }
+    @catch(NSException* ex)
+    {
+        [_callback doGetJsonCallBack:nil];
+    }
+}
+
 #pragma mark -
 #pragma mark - 同步异步方法的实现
 
@@ -123,6 +147,7 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     NSString *dataStr = [[NSString alloc] initWithData:_downData encoding:NSUTF8StringEncoding];
+    _jsonDatasStr = [NSString stringWithFormat:@"%@",dataStr];
     
     [_invokeResult SetResultText:dataStr];
     [self.EventCenter FireEvent:@"response" :_invokeResult];
@@ -146,4 +171,31 @@
     _invokeResult = nil;
 }
 
+#pragma mark - private
+-(NSString*) getTextData:(NSString*) _source
+{
+    @try
+    {
+        NSString* _fileFullName = [self getSourceFullName:_source];
+        NSString* _strResult = [doIOHelper ReadUTF8File:_fileFullName];
+        return _strResult;
+    }
+    @catch(NSException* ex)
+    {
+        return nil;
+    }
+}
+-(NSString*) getSourceFullName:(NSString*) _source
+{
+    NSString* _fileFullName = nil;
+    if (self.CurrentPage != nil)
+    {
+        _fileFullName = [doIOHelper GetLocalFileFullPath2:self.CurrentPage.UIFile : _source];
+    }
+    else
+    {
+        _fileFullName = [doIOHelper GetLocalFileFullPath:self.CurrentApp : _source];
+    }
+    return _fileFullName;
+}
 @end
