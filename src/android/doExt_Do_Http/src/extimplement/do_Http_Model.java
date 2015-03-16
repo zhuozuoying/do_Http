@@ -41,8 +41,8 @@ import core.helper.jsonparse.DoJsonValue;
 import core.interfaces.DoIScriptEngine;
 import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
-import extdefine.Do_Http_IMethod;
-import extdefine.Do_Http_MAbstract;
+import extdefine.do_Http_IMethod;
+import extdefine.do_Http_MAbstract;
 
 /**
  * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
@@ -51,9 +51,9 @@ import extdefine.Do_Http_MAbstract;
  * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象；
  * 获取DoInvokeResult对象方式new DoInvokeResult(this.model.getUniqueKey());
  */
-public class Do_Http_Model extends Do_Http_MAbstract implements Do_Http_IMethod,DoIDataSource{
+public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,DoIDataSource{
 
-	public Do_Http_Model() throws Exception {
+	public do_Http_Model() throws Exception {
 		super();
 	}
 	

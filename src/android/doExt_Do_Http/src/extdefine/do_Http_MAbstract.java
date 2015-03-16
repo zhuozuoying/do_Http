@@ -5,9 +5,9 @@ import core.object.DoProperty;
 import core.object.DoProperty.PropertyDataType;
 
 
-public abstract class Do_Http_MAbstract extends DoMultitonModule{
+public abstract class do_Http_MAbstract extends DoMultitonModule{
 
-	protected Do_Http_MAbstract() throws Exception {
+	protected do_Http_MAbstract() throws Exception {
 		super();
 	}
 	
