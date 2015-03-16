@@ -171,31 +171,4 @@
     _invokeResult = nil;
 }
 
-#pragma mark - private
--(NSString*) getTextData:(NSString*) _source
-{
-    @try
-    {
-        NSString* _fileFullName = [self getSourceFullName:_source];
-        NSString* _strResult = [doIOHelper ReadUTF8File:_fileFullName];
-        return _strResult;
-    }
-    @catch(NSException* ex)
-    {
-        return nil;
-    }
-}
--(NSString*) getSourceFullName:(NSString*) _source
-{
-    NSString* _fileFullName = nil;
-    if (self.CurrentPage != nil)
-    {
-        _fileFullName = [doIOHelper GetLocalFileFullPath2:self.CurrentPage.UIFile : _source];
-    }
-    else
-    {
-        _fileFullName = [doIOHelper GetLocalFileFullPath:self.CurrentApp : _source];
-    }
-    return _fileFullName;
-}
 @end
