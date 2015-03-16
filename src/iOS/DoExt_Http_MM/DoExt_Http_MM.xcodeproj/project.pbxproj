@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DDE28AD61A84B56A000C9E61 /* DoExt_Http_MM.m in Sources */ = {isa = PBXBuildFile; fileRef = DDE28AD51A84B56A000C9E61 /* DoExt_Http_MM.m */; };
+		DDE28AD61A84B56A000C9E61 /* do_Http_MM.m in Sources */ = {isa = PBXBuildFile; fileRef = DDE28AD51A84B56A000C9E61 /* do_Http_MM.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,10 +24,10 @@
 
 /* Begin PBXFileReference section */
 		A4E1EABD1A778F1700F0B3CE /* libDoExt_Http_MM.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libDoExt_Http_MM.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A4E1EADC1A778F8200F0B3CE /* DoExt_Http_SM.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = DoExt_Http_SM.bundle; sourceTree = "<group>"; };
-		DDE28AD31A84B553000C9E61 /* DoExt_Http_IMM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DoExt_Http_IMM.h; sourceTree = "<group>"; };
-		DDE28AD41A84B56A000C9E61 /* DoExt_Http_MM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DoExt_Http_MM.h; sourceTree = "<group>"; };
-		DDE28AD51A84B56A000C9E61 /* DoExt_Http_MM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DoExt_Http_MM.m; sourceTree = "<group>"; };
+		A4E1EADC1A778F8200F0B3CE /* do_Http_SM.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = do_Http_SM.bundle; sourceTree = "<group>"; };
+		DDE28AD31A84B553000C9E61 /* do_Http_IMM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_Http_IMM.h; sourceTree = "<group>"; };
+		DDE28AD41A84B56A000C9E61 /* do_Http_MM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_Http_MM.h; sourceTree = "<group>"; };
+		DDE28AD51A84B56A000C9E61 /* do_Http_MM.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = do_Http_MM.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +44,7 @@
 		A4917C461A78940200FFB148 /* ext_define */ = {
 			isa = PBXGroup;
 			children = (
-				DDE28AD31A84B553000C9E61 /* DoExt_Http_IMM.h */,
+				DDE28AD31A84B553000C9E61 /* do_Http_IMM.h */,
 			);
 			path = ext_define;
 			sourceTree = "<group>";
@@ -52,8 +52,8 @@
 		A4917C481A78940200FFB148 /* ext_implement */ = {
 			isa = PBXGroup;
 			children = (
-				DDE28AD41A84B56A000C9E61 /* DoExt_Http_MM.h */,
-				DDE28AD51A84B56A000C9E61 /* DoExt_Http_MM.m */,
+				DDE28AD41A84B56A000C9E61 /* do_Http_MM.h */,
+				DDE28AD51A84B56A000C9E61 /* do_Http_MM.m */,
 			);
 			path = ext_implement;
 			sourceTree = "<group>";
@@ -63,7 +63,7 @@
 			children = (
 				A4917C461A78940200FFB148 /* ext_define */,
 				A4917C481A78940200FFB148 /* ext_implement */,
-				A4E1EADC1A778F8200F0B3CE /* DoExt_Http_SM.bundle */,
+				A4E1EADC1A778F8200F0B3CE /* do_Http_SM.bundle */,
 				A4E1EABE1A778F1700F0B3CE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -132,7 +132,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DDE28AD61A84B56A000C9E61 /* DoExt_Http_MM.m in Sources */,
+				DDE28AD61A84B56A000C9E61 /* do_Http_MM.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
