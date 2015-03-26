@@ -19,7 +19,7 @@
 
 @implementation do_Http_MM
 {
-    NSString *_url;
+    NSString *_urlStr;
     NSURLConnection *_connection;
     NSMutableData *_downData;
     doInvokeResult *_invokeResult;
@@ -35,7 +35,7 @@
     [super OnInit];
     //注册属性
     
-    [self RegistProperty:[[doProperty alloc] init:@"method" :String :@"" :NO]];
+    [self RegistProperty:[[doProperty alloc] init:@"method" :String :@"get" :NO]];
     [self RegistProperty:[[doProperty alloc] init:@"url" :String :@"" :NO]];
     [self RegistProperty:[[doProperty alloc] init:@"timeout" :Number :@"5000" :NO]];
     [self RegistProperty:[[doProperty alloc] init:@"contentType" :String :@"text/html" :NO]];
@@ -47,7 +47,7 @@
 {
     //自定义的全局属性
     [super Dispose];
-    _url = nil;
+    _urlStr = nil;
     [_connection cancel];
     _connection = nil;
     [_downData setLength:0];
@@ -78,49 +78,58 @@
 #pragma mark -
 #pragma mark - 同步异步方法的实现
 
- - (void)request:(NSArray *)parms
- {
-     _invokeResult = [parms objectAtIndex:2];
-     
-     NSString *method = [self GetPropertyValue:@"method"];
-     NSString *url = [self GetPropertyValue:@"url"];
-     
-     if(url == _url) return;
-     _url = url;
-     [_connection cancel];
-     
-     NSString *timeout = [self GetPropertyValue:@"timeout"];
-     
-     NSString *contentType = [self GetPropertyValue:@"contentType"];
-     if(!contentType)
-         contentType = @"application/x-www-form-urlencoded";
-     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[url stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:[timeout floatValue]/1000];
-     if([method isEqualToString:@"get"])
-     {
-         if([url hasPrefix:@"https"])
-         {
-             [request setValue:contentType forHTTPHeaderField:@"Content-Type"];
-         }
-         [request setHTTPMethod:@"GET"];
-         _connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
-     }
-     else if([method isEqualToString:@"post"])
-     {
-         NSString *body = [self GetPropertyValue:@"body"];
-         [request setHTTPMethod:@"POST"];
-         NSMutableData *myRequestData=[NSMutableData data];
-         [myRequestData appendData:[body dataUsingEncoding:NSUTF8StringEncoding]];
-         NSUInteger dataLong = myRequestData.length;
-         [request setValue:contentType forHTTPHeaderField:@"Content-Type"];
-         [request setValue:[NSString stringWithFormat:@"%lu",( unsigned long)dataLong] forHTTPHeaderField:@"Content-Length"];
-         [request setHTTPBody:myRequestData];
-         _connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
-     }
-     else
-     {
-         NSLog(@"请求模式未知!");
-     }
- }
+- (void)request:(NSArray *)parms
+{
+    _invokeResult = [parms objectAtIndex:2];
+    
+    NSString *method = [self GetPropertyValue:@"method"];
+    if(!method || [method isEqualToString:@""])
+        method = [self GetProperty:@"method"].DefaultValue;
+    
+    NSString *urlStr = [self GetPropertyValue:@"url"];
+    if(urlStr == _urlStr) return;
+    
+    _urlStr = urlStr;
+    [_connection cancel];
+    
+    NSString *timeout = [self GetPropertyValue:@"timeout"];
+    if(!timeout || [timeout isEqualToString:@""])
+        timeout = [self GetProperty:@"timeout"].DefaultValue;
+    
+    NSString *contentType = [self GetPropertyValue:@"contentType"];
+    if(!contentType)
+        contentType = @"application/x-www-form-urlencoded";
+    NSURL *url = [NSURL URLWithString:[urlStr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:[timeout floatValue]/1000];
+    
+    if([method compare:@"get" options:NSCaseInsensitiveSearch] == NSOrderedSame)
+    {
+        if([urlStr hasPrefix:@"https"])
+        {
+            [request setValue:contentType forHTTPHeaderField:@"Content-Type"];
+        }
+        [request setHTTPMethod:@"GET"];
+        _connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
+    }
+    else if([method compare:@"post" options:NSCaseInsensitiveSearch] == NSOrderedSame)
+    {
+        NSString *body = [self GetPropertyValue:@"body"];
+        [request setHTTPMethod:@"POST"];
+        NSMutableData *myRequestData=[NSMutableData data];
+        [myRequestData appendData:[body dataUsingEncoding:NSUTF8StringEncoding]];
+        NSUInteger dataLong = myRequestData.length;
+        [request setValue:contentType forHTTPHeaderField:@"Content-Type"];
+        [request setValue:[NSString stringWithFormat:@"%lu",( unsigned long)dataLong] forHTTPHeaderField:@"Content-Length"];
+        [request setHTTPBody:myRequestData];
+        _connection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
+    }
+    else
+    {
+        _urlStr = nil;
+        [NSException raise:@"do_Http" format:@"请求模式未知!"];
+    }
+}
 #pragma mark - connection
 
 //设置证书,在客户端默认忽略证书认证
@@ -164,7 +173,7 @@
 
 - (void)setNil;
 {
-    _url = nil;
+    _urlStr = nil;
     _connection = nil;
     [_downData setLength:0];
     _downData = nil;
