@@ -1,4 +1,4 @@
-package extimplement;
+package doext.implement;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -41,8 +41,8 @@ import core.helper.jsonparse.DoJsonValue;
 import core.interfaces.DoIScriptEngine;
 import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
-import extdefine.do_Http_IMethod;
-import extdefine.do_Http_MAbstract;
+import doext.define.do_Http_IMethod;
+import doext.define.do_Http_MAbstract;
 
 /**
  * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；

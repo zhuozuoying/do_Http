@@ -1,4 +1,4 @@
-package extdefine;
+package doext.define;
 
 import core.helper.jsonparse.DoJsonNode;
 import core.interfaces.DoIScriptEngine;
