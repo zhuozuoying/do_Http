@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A4B46C321AE1020C005CADB7 /* do_Http_App.m in Sources */ = {isa = PBXBuildFile; fileRef = A4B46C301AE1020C005CADB7 /* do_Http_App.m */; };
 		DDE28AD61A84B56A000C9E61 /* do_Http_MM.m in Sources */ = {isa = PBXBuildFile; fileRef = DDE28AD51A84B56A000C9E61 /* do_Http_MM.m */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +24,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A4B46C301AE1020C005CADB7 /* do_Http_App.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = do_Http_App.m; sourceTree = "<group>"; };
+		A4B46C311AE1020C005CADB7 /* do_Http_App.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_Http_App.h; sourceTree = "<group>"; };
 		A4E1EABD1A778F1700F0B3CE /* libDoExt_Http_MM.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libDoExt_Http_MM.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4E1EADC1A778F8200F0B3CE /* do_Http_SM.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = do_Http_SM.bundle; sourceTree = "<group>"; };
 		DDE28AD31A84B553000C9E61 /* do_Http_IMM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_Http_IMM.h; sourceTree = "<group>"; };
@@ -52,6 +55,8 @@
 		A4917C481A78940200FFB148 /* ext_implement */ = {
 			isa = PBXGroup;
 			children = (
+				A4B46C301AE1020C005CADB7 /* do_Http_App.m */,
+				A4B46C311AE1020C005CADB7 /* do_Http_App.h */,
 				DDE28AD41A84B56A000C9E61 /* do_Http_MM.h */,
 				DDE28AD51A84B56A000C9E61 /* do_Http_MM.m */,
 			);
@@ -133,6 +138,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DDE28AD61A84B56A000C9E61 /* do_Http_MM.m in Sources */,
+				A4B46C321AE1020C005CADB7 /* do_Http_App.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
