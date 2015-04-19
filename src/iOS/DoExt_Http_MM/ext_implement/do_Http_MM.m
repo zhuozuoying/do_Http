@@ -23,7 +23,7 @@
     NSURLConnection *_connection;
     NSMutableData *_downData;
     doInvokeResult *_invokeResult;
-    NSString *_jsonDatasStr;
+    id<doGetJsonCallBack> _jsonCallBack;
 }
 
 #pragma mark - 注册属性（--属性定义--）
@@ -53,26 +53,15 @@
     [_downData setLength:0];
     _downData = nil;
     _invokeResult = nil;
-    _jsonDatasStr = nil;
+    _jsonCallBack = nil;
 }
 
 #pragma mark -
 #pragma mark - override doIDataSource
 -(void) GetJsonData:(id<doGetJsonCallBack>) _callback
 {
-    if(_jsonDatasStr == nil || _jsonDatasStr.length<=0)
-        [NSException raise:@"doFileData" format:@"source无效！",nil];
-    @try
-    {
-        //这里暂时不考虑线程，读文件同步完成，以后可能需要改成异步
-        doJsonValue* _jsonResultValue = [[doJsonValue alloc]init];
-        [_jsonResultValue LoadDataFromText:_jsonDatasStr];
-        [_callback doGetJsonCallBack:_jsonResultValue];
-    }
-    @catch(NSException* ex)
-    {
-        [_callback doGetJsonCallBack:nil];
-    }
+    _jsonCallBack = _callback;
+    [self request];
 }
 
 #pragma mark -
@@ -81,7 +70,10 @@
 - (void)request:(NSArray *)parms
 {
     _invokeResult = [parms objectAtIndex:2];
-    
+    [self request];
+}
+- (void) request
+{
     NSString *method = [self GetPropertyValue:@"method"];
     if(!method || [method isEqualToString:@""])
         method = [self GetProperty:@"method"].DefaultValue;
@@ -156,18 +148,19 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     NSString *dataStr = [[NSString alloc] initWithData:_downData encoding:NSUTF8StringEncoding];
-    _jsonDatasStr = [NSString stringWithFormat:@"%@",dataStr];
     
     [_invokeResult SetResultText:dataStr];
     [self.EventCenter FireEvent:@"response" :_invokeResult];
-    
+    if(_jsonCallBack!=nil)
+        [_jsonCallBack doGetJsonCallBack:dataStr];
     [self setNil];
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     [_invokeResult SetError:[error description]];
     [self.EventCenter FireEvent:@"response" :_invokeResult];
-    
+    if(_jsonCallBack!=nil)
+        [_jsonCallBack doGetJsonCallBack:[error description]];
     [self setNil];
 }
 
@@ -178,6 +171,7 @@
     [_downData setLength:0];
     _downData = nil;
     _invokeResult = nil;
+    _jsonCallBack = nil;
 }
 
 @end
