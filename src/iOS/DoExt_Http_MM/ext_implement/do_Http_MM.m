@@ -151,16 +151,22 @@
     
     [_invokeResult SetResultText:dataStr];
     [self.EventCenter FireEvent:@"response" :_invokeResult];
-    if(_jsonCallBack!=nil)
-        [_jsonCallBack doGetJsonCallBack:dataStr];
+    if(_jsonCallBack!=nil){
+        doJsonValue* value = [[doJsonValue alloc]init];
+        [value LoadDataFromText:dataStr];
+        [_jsonCallBack doGetJsonCallBack:value];
+    }
     [self setNil];
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
     [_invokeResult SetError:[error description]];
     [self.EventCenter FireEvent:@"response" :_invokeResult];
-    if(_jsonCallBack!=nil)
-        [_jsonCallBack doGetJsonCallBack:[error description]];
+    if(_jsonCallBack!=nil){
+        doJsonValue* value = [[doJsonValue alloc]init];
+        [value LoadDataFromText:[error description]];
+        [_jsonCallBack doGetJsonCallBack:value];
+    }
     [self setNil];
 }
 
