@@ -38,7 +38,7 @@
     id<doIScriptEngine> _downScriptEngine;
     NSString *_downCallbackFuncName;
     NSString *_downFilePath;
-    NSInteger _downLong;
+    long long _downLong;
     NSMutableData *_downData;
 }
 
@@ -128,7 +128,7 @@
 }
 
 #pragma mark private methed
-- (doInvokeResult *)getInvokeResult:(NSInteger)currentSize :(NSInteger)totalSize
+- (doInvokeResult *)getInvokeResult:(long long)currentSize :(long long)totalSize
 {
     doInvokeResult *_myInvokeResult = [[doInvokeResult alloc]init:nil];
     doJsonNode *jsonNode = [[doJsonNode alloc] init];
