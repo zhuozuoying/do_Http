@@ -1,5 +1,6 @@
 package doext.implement;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -12,6 +13,9 @@ import java.security.UnrecoverableKeyException;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import net.tsz.afinal.FinalHttp;
+import net.tsz.afinal.http.AjaxCallBack;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -35,6 +39,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import core.DoServiceContainer;
+import core.helper.DoIOHelper;
 import core.helper.DoTextHelper;
 import core.helper.jsonparse.DoJsonNode;
 import core.helper.jsonparse.DoJsonValue;
@@ -43,6 +48,8 @@ import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
 import doext.define.do_Http_IMethod;
 import doext.define.do_Http_MAbstract;
+import doext.utils.FileUploadUtil;
+import doext.utils.FileUploadUtil.FileUploadListener;
 
 /**
  * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
@@ -117,6 +124,8 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			}
 		}).start();
 	}
+	
+	
 
 	private String doRequest() throws Exception {
 		String method = getPropertyValue("method");
@@ -241,5 +250,76 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			}
 		}).start();
 
+	}
+
+	@Override
+	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
+			DoInvokeResult _invokeResult) throws Exception {
+		final String inputName = _dictParas.getOneText("inputName", "");
+		String path = _dictParas.getOneText("path", "");
+		String fileFullPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
+		final File file = new File(fileFullPath);
+		if (file.exists()) {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						int timeout = DoTextHelper.strToInt(getPropertyValue("timeout"), 500000);
+						String url = getPropertyValue("url");
+						FileUploadUtil uploadUtil = new FileUploadUtil(timeout);
+						uploadUtil.setListener(new FileUploadListener() {
+							@Override
+							public void transferred(long count, long current) {
+								DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
+								DoJsonNode jsonNode = new DoJsonNode();
+								jsonNode.setOneText("currentSize", current + "");
+								jsonNode.setOneText("totalSize", count + "");
+								getEventCenter().fireEvent("response", _invokeResult);
+							}
+						});
+						uploadUtil.uploadFile(file, url, inputName);
+					} catch (Exception e) {
+						DoServiceContainer.getLogEngine().writeError("Http upload \n", e);
+					}
+				}
+			}).start();
+		} else {
+			DoServiceContainer.getLogEngine().writeInfo("Http upload \n", path + " 文件不存在");
+		}
+	}
+
+	@Override
+	public void download(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
+			DoInvokeResult _invokeResult) throws Exception {
+		String path = _dictParas.getOneText("path", "");
+		String _savaRelPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
+		FinalHttp fh = new FinalHttp();
+		String url = getPropertyValue("url");
+		fh.download(url, _savaRelPath, false, new AjaxCallBack<File>() {
+			@Override
+			public void onSuccess(File t) {
+				super.onSuccess(t);
+			}
+
+			@Override
+			public void onLoading(long count, long current) {
+				super.onLoading(count, current);
+				try {
+					DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
+					DoJsonNode jsonNode = new DoJsonNode();
+					jsonNode.setOneText("currentSize", current + "");
+					jsonNode.setOneText("totalSize", count + "");
+					getEventCenter().fireEvent("response", _invokeResult);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void onFailure(Throwable t, int errorNo, String strMsg) {
+				super.onFailure(t, errorNo, strMsg);
+				DoServiceContainer.getLogEngine().writeInfo("Http Download", "下载失败" + strMsg);
+			}
+		});
 	}
 }
