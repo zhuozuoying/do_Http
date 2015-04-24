@@ -255,7 +255,6 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	@Override
 	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
 			DoInvokeResult _invokeResult) throws Exception {
-		final String inputName = _dictParas.getOneText("inputName", "");
 		String path = _dictParas.getOneText("path", "");
 		String fileFullPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
 		final File file = new File(fileFullPath);
@@ -277,7 +276,7 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 								getEventCenter().fireEvent("response", _invokeResult);
 							}
 						});
-						uploadUtil.uploadFile(file, url, inputName);
+						uploadUtil.uploadFile(file, url);
 					} catch (Exception e) {
 						DoServiceContainer.getLogEngine().writeError("Http upload \n", e);
 					}

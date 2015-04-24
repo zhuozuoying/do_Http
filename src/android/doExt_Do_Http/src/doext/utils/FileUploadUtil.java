@@ -41,7 +41,7 @@ public class FileUploadUtil {
 	 * @param RequestURL 请求的rul
 	 * @return 返回响应的内容
 	 */
-	public String uploadFile(File file, String RequestURL, String inputName) {
+	public String uploadFile(File file, String RequestURL) {
 		String result = null;
 		String BOUNDARY = UUID.randomUUID().toString(); // 边界标识 随机生成
 		String PREFIX = "--", LINE_END = "\r\n";
@@ -74,7 +74,7 @@ public class FileUploadUtil {
 				 * filename是文件的名字，包含后缀名的 比如:abc.png
 				 */
 
-				sb.append("Content-Disposition: form-data; name=\"" + inputName + "\"; filename=\"" + file.getName() + "\"" + LINE_END);
+				sb.append("Content-Disposition: form-data; filename=\"" + file.getName() + "\"" + LINE_END);
 				sb.append("Content-Type: application/octet-stream; charset=" + CHARSET + LINE_END);
 				sb.append(LINE_END);
 				dos.write(sb.toString().getBytes());
