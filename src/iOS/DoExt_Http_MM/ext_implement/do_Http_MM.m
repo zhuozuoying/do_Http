@@ -235,7 +235,7 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     if(connection == _connection) {
-        NSString *dataStr = [[NSString alloc] initWithData:_downData encoding:NSUTF8StringEncoding];
+        NSString *dataStr = [[NSString alloc] initWithData:_data encoding:NSUTF8StringEncoding];
         
         [_invokeResult SetResultText:dataStr];
         [self.EventCenter FireEvent:@"response" :_invokeResult];
