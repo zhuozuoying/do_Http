@@ -3,6 +3,7 @@ package doext.implement;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -17,6 +18,7 @@ import javax.net.ssl.X509TrustManager;
 import net.tsz.afinal.FinalHttp;
 import net.tsz.afinal.http.AjaxCallBack;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
@@ -52,7 +54,7 @@ import doext.utils.FileUploadUtil;
 import doext.utils.FileUploadUtil.FileUploadListener;
 
 /**
- * 自定义扩展SM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
+ * 自定义扩展MM组件Model实现，继承Do_Http_MAbstract抽象类，并实现Do_Http_IMethod接口方法；
  * #如何调用组件自定义事件？可以通过如下方法触发事件：
  * this.model.getEventCenter().fireEvent(_messageName, jsonResult);
  * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象； 获取DoInvokeResult对象方式new
@@ -114,18 +116,22 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			@Override
 			public void run() {
 				try {
-					String responseContent = doRequest();
-					_invokeResult.setResultText(responseContent);
-					getEventCenter().fireEvent("response", _invokeResult);
-				} catch (Exception e) {
+					String content = doRequest();
+					if(content != null){
+						_invokeResult.setResultText(content);
+						getEventCenter().fireEvent("success", _invokeResult);
+					}
+				}catch (SocketTimeoutException e) {
+					fireFail(408, "请求超时，" + e.getMessage());
 					e.printStackTrace();
+				}catch (Exception e) {
+					e.printStackTrace();
+					fireFail(-1, "请求失败，" + e.getMessage());
 					DoServiceContainer.getLogEngine().writeError("Http Error!" + e.getMessage(), e);
 				}
 			}
 		}).start();
 	}
-	
-	
 
 	private String doRequest() throws Exception {
 		String method = getPropertyValue("method");
@@ -173,28 +179,60 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	}
 
 	private String doGet(String url, int timeout) throws Exception {
-		HttpClient httpClient = getHttpClient(timeout);
-		HttpGet get = new HttpGet(url);
-		HttpResponse response = httpClient.execute(get);
-		int statusCode = response.getStatusLine().getStatusCode();
-		if (statusCode != 200) {
-			throw new RuntimeException("Get请求服务器失败，statusCode：" + statusCode);
+		String content = null;
+		HttpClient httpClient = null;
+		try{
+			httpClient = getHttpClient(timeout);
+			HttpGet get = new HttpGet(url);
+			HttpResponse response = httpClient.execute(get);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				HttpEntity entity = response.getEntity();
+				if( null == entity) {
+					throw new RuntimeException("The response has no entity.");
+				}
+				content = EntityUtils.toString(entity, "UTF-8");
+			}else{
+				fireFail(statusCode, "GET请求失败，状态码描述：" + response.getStatusLine().getReasonPhrase());
+			}
+		}catch(Exception e){
+			throw e;
+		}finally{
+			if(httpClient != null){
+				httpClient.getConnectionManager().shutdown();
+			}
 		}
-		return EntityUtils.toString(response.getEntity(), "UTF-8");
+		return content;
 	}
 
 	private String doPost(String url, String body, String contentType, int timeout) throws Exception {
-		HttpClient httpClient = getHttpClient(timeout);
-		HttpPost post = new HttpPost(url);
-		StringEntity se = new StringEntity(body, HTTP.UTF_8);
-		se.setContentType(contentType);
-		post.setEntity(se);
-		BasicHttpResponse response = (BasicHttpResponse) httpClient.execute(post);
-		int statusCode = response.getStatusLine().getStatusCode();
-		if (statusCode != 200) {
-			throw new RuntimeException("Post请求服务器失败，statusCode：" + statusCode);
+		String content = null;
+		HttpClient httpClient = null;
+		try{
+			httpClient = getHttpClient(timeout);
+			HttpPost post = new HttpPost(url);
+			StringEntity se = new StringEntity(body, HTTP.UTF_8);
+			se.setContentType(contentType);
+			post.setEntity(se);
+			BasicHttpResponse response = (BasicHttpResponse) httpClient.execute(post);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				HttpEntity entity = response.getEntity();
+				if( null == entity) {
+					throw new RuntimeException("The response has no entity.");
+				}
+				content = EntityUtils.toString(entity, "UTF-8");
+			}else{
+				fireFail(statusCode, "GET请求失败，状态码描述：" + response.getStatusLine().getReasonPhrase());
+			}
+		}catch(Exception e){
+			throw e;
+		}finally{
+			if(httpClient != null){
+				httpClient.getConnectionManager().shutdown();
+			}
 		}
-		return EntityUtils.toString(response.getEntity(), "utf-8");
+		return content;
 	}
 
 	class SSLSocketFactoryEx extends SSLSocketFactory {
@@ -232,6 +270,103 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	}
 
 	@Override
+	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
+			final DoInvokeResult _invokeResult) throws Exception {
+		String path = _dictParas.getOneText("path", "");
+		String fileFullPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
+		final File file = new File(fileFullPath);
+		if (file.exists()) {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						int timeout = DoTextHelper.strToInt(getPropertyValue("timeout"), 500000);
+						String url = getPropertyValue("url");
+						FileUploadUtil uploadUtil = new FileUploadUtil(timeout);
+						uploadUtil.setListener(new FileUploadListener() {
+							@Override
+							public void transferred(long count, long current) {
+								fireProgress(count, current);
+							}
+
+							@Override
+							public void onSuccess() {
+								getEventCenter().fireEvent("success", _invokeResult);
+							}
+
+							@Override
+							public void onFailure(int statusCode, String msg) {
+								fireFail(statusCode, msg);
+							}
+						});
+						uploadUtil.uploadFile(file, url);
+					} catch (Exception e) {
+						DoServiceContainer.getLogEngine().writeError("Http upload \n", e);
+					}
+				}
+			}).start();
+		} else {
+			DoServiceContainer.getLogEngine().writeInfo("Http upload \n", path + " 文件不存在");
+		}
+	}
+
+	@Override
+	public void download(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
+			final DoInvokeResult _invokeResult) throws Exception {
+		String path = _dictParas.getOneText("path", "");
+		String _savaRelPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
+		FinalHttp fh = new FinalHttp();
+		String url = getPropertyValue("url");
+		fh.download(url, _savaRelPath, false, new AjaxCallBack<File>() {
+			@Override
+			public void onSuccess(File t) {
+				super.onSuccess(t);
+				getEventCenter().fireEvent("success", _invokeResult);
+			}
+
+			@Override
+			public void onLoading(long count, long current) {
+				super.onLoading(count, current);
+				fireProgress(count, current);
+			}
+
+			@Override
+			public void onFailure(Throwable t, int errorNo, String strMsg) {
+				super.onFailure(t, errorNo, strMsg);
+				fireFail(errorNo, strMsg);
+				DoServiceContainer.getLogEngine().writeInfo("Http Download", "下载失败" + strMsg);
+			}
+		});
+	}
+	
+	private void fireFail(int statusCode, String msg){
+		DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
+		DoJsonNode jsonNode = new DoJsonNode();
+		jsonNode.setOneInteger("status", statusCode);
+		jsonNode.setOneText("message", msg);
+		try {
+			_invokeResult.setResultNode(jsonNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		getEventCenter().fireEvent("fail", _invokeResult);
+		DoServiceContainer.getLogEngine().writeInfo("Http失败","statusCode:" + statusCode + " Msg:" + msg);
+	}
+	
+	private void fireProgress(long total, long curr) {
+		DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
+		DoJsonNode jsonNode = new DoJsonNode();
+		jsonNode.setOneText("currentSize", curr / 1024 + "");
+		jsonNode.setOneText("totalSize", total / 1024 + "");
+		try {
+			_invokeResult.setResultNode(jsonNode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		getEventCenter().fireEvent("progress", _invokeResult);
+	}
+	
+	@Override
 	public void getJsonData(final DoGetJsonCallBack _callback) {
 		new Thread(new Runnable() {
 			@Override
@@ -252,73 +387,4 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 
 	}
 
-	@Override
-	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
-			DoInvokeResult _invokeResult) throws Exception {
-		String path = _dictParas.getOneText("path", "");
-		String fileFullPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
-		final File file = new File(fileFullPath);
-		if (file.exists()) {
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						int timeout = DoTextHelper.strToInt(getPropertyValue("timeout"), 500000);
-						String url = getPropertyValue("url");
-						FileUploadUtil uploadUtil = new FileUploadUtil(timeout);
-						uploadUtil.setListener(new FileUploadListener() {
-							@Override
-							public void transferred(long count, long current) {
-								DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
-								DoJsonNode jsonNode = new DoJsonNode();
-								jsonNode.setOneText("currentSize", current + "");
-								jsonNode.setOneText("totalSize", count + "");
-								getEventCenter().fireEvent("response", _invokeResult);
-							}
-						});
-						uploadUtil.uploadFile(file, url);
-					} catch (Exception e) {
-						DoServiceContainer.getLogEngine().writeError("Http upload \n", e);
-					}
-				}
-			}).start();
-		} else {
-			DoServiceContainer.getLogEngine().writeInfo("Http upload \n", path + " 文件不存在");
-		}
-	}
-
-	@Override
-	public void download(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
-			DoInvokeResult _invokeResult) throws Exception {
-		String path = _dictParas.getOneText("path", "");
-		String _savaRelPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
-		FinalHttp fh = new FinalHttp();
-		String url = getPropertyValue("url");
-		fh.download(url, _savaRelPath, false, new AjaxCallBack<File>() {
-			@Override
-			public void onSuccess(File t) {
-				super.onSuccess(t);
-			}
-
-			@Override
-			public void onLoading(long count, long current) {
-				super.onLoading(count, current);
-				try {
-					DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
-					DoJsonNode jsonNode = new DoJsonNode();
-					jsonNode.setOneText("currentSize", current + "");
-					jsonNode.setOneText("totalSize", count + "");
-					getEventCenter().fireEvent("response", _invokeResult);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-
-			@Override
-			public void onFailure(Throwable t, int errorNo, String strMsg) {
-				super.onFailure(t, errorNo, strMsg);
-				DoServiceContainer.getLogEngine().writeInfo("Http Download", "下载失败" + strMsg);
-			}
-		});
-	}
 }

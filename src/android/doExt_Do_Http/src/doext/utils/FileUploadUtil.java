@@ -1,18 +1,13 @@
 package doext.utils;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
-
-import core.DoServiceContainer;
 
 public class FileUploadUtil {
 
@@ -33,23 +28,26 @@ public class FileUploadUtil {
 
 	public interface FileUploadListener {
 		void transferred(long count, long current);
+		void onSuccess();
+		void onFailure(int statusCode,String msg);
 	}
 
 	/**
 	 * android上传文件到服务器
 	 * @param file 需要上传的文件
-	 * @param RequestURL 请求的rul
+	 * @param RequestURL 请求的url
 	 * @return 返回响应的内容
+	 * @throws Exception 
 	 */
-	public String uploadFile(File file, String RequestURL) {
+	public String uploadFile(File file, String RequestURL) throws Exception {
 		String result = null;
 		String BOUNDARY = UUID.randomUUID().toString(); // 边界标识 随机生成
 		String PREFIX = "--", LINE_END = "\r\n";
 		String CONTENT_TYPE = "multipart/form-data"; // 内容类型
-
+		HttpURLConnection conn = null;
 		try {
 			URL url = new URL(RequestURL);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn = (HttpURLConnection) url.openConnection();
 			conn.setReadTimeout(timeOut);
 			conn.setConnectTimeout(timeOut);
 			conn.setDoInput(true); // 允许输入流
@@ -59,21 +57,13 @@ public class FileUploadUtil {
 			conn.setRequestProperty("Charset", CHARSET); // 设置编码
 			conn.setRequestProperty("connection", "keep-alive");
 			conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
-
+			conn.connect();//连接服务器
 			if (file != null) {
-				/**
-				 * 当文件不为空，把文件包装并且上传
-				 */
 				DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
 				StringBuffer sb = new StringBuffer();
 				sb.append(PREFIX);
 				sb.append(BOUNDARY);
 				sb.append(LINE_END);
-				/**
-				 * 这里重点注意： name里面的值为服务器端需要key 只有这个key 才可以得到对应的文件
-				 * filename是文件的名字，包含后缀名的 比如:abc.png
-				 */
-
 				sb.append("Content-Disposition: form-data; filename=\"" + file.getName() + "\"" + LINE_END);
 				sb.append("Content-Type: application/octet-stream; charset=" + CHARSET + LINE_END);
 				sb.append(LINE_END);
@@ -94,25 +84,27 @@ public class FileUploadUtil {
 				dos.write(end_data);
 				dos.flush();
 				/**
-				 * 获取响应码 200=成功 当响应成功，获取响应的流
+				 * 获取响应码 200=成功 当响应成功，//获取响应的流
 				 */
 				int res = conn.getResponseCode();
 				if (res == 200) {
-					BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+					this.listener.onSuccess();
+					/*BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
 					String r = null;
 					StringBuffer s = new StringBuffer();
 					while ((r = reader.readLine()) != null) {
 						s.append(r);
 					}
-					result = s.toString();
+					result = s.toString();*/
 				}
 			}
-		} catch (MalformedURLException e) {
+		}  catch (IOException e) {
+			this.listener.onFailure(conn.getResponseCode(), e.getMessage());
 			e.printStackTrace();
-			DoServiceContainer.getLogEngine().writeError("Http", e);
-		} catch (IOException e) {
-			e.printStackTrace();
-			DoServiceContainer.getLogEngine().writeError("Http", e);
+		} finally {
+			if(null != conn){
+				conn.disconnect();//释放连接资源
+			}
 		}
 		return result;
 	}
