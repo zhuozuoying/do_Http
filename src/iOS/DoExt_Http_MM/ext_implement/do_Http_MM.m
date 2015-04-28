@@ -229,7 +229,8 @@
     
     else if(connection == _downConnection) {
         [_downData appendData:data];
-        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downData.length :_downLong]];
+        [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:_downData.length :_downLong]];
+//        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downData.length :_downLong]];
     }
 }
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -238,7 +239,7 @@
         NSString *dataStr = [[NSString alloc] initWithData:_data encoding:NSUTF8StringEncoding];
         
         [_invokeResult SetResultText:dataStr];
-        [self.EventCenter FireEvent:@"response" :_invokeResult];
+        [self.EventCenter FireEvent:@"success" :_invokeResult];
         if(_jsonCallBack!=nil){
             doJsonValue* value = [[doJsonValue alloc]init];
             [value LoadDataFromText:dataStr];
@@ -247,13 +248,19 @@
     }
     else if (connection == _downConnection) {
         [_downData writeToFile:_downFilePath atomically:YES];
-        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downLong :_downLong]];
+        [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:_downLong :_downLong]];
+//        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downLong :_downLong]];
     }
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
-    [_invokeResult SetError:[error description]];
-    [self.EventCenter FireEvent:@"response" :_invokeResult];
+    doJsonNode *node = [[doJsonNode alloc] init];
+    [node SetOneInteger:@"status" :(int)error.code];
+    [node SetOneText:@"message" :[error localizedDescription]];
+    [_invokeResult SetResultNode:node];
+//    [_invokeResult SetError:[error description]];
+    [self.EventCenter FireEvent:@"fail" :_invokeResult];
+    
     if(_jsonCallBack!=nil){
         doJsonValue* value = [[doJsonValue alloc]init];
         [value LoadDataFromText:[error description]];
