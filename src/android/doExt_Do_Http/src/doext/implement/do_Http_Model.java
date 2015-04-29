@@ -44,9 +44,7 @@ import core.DoServiceContainer;
 import core.helper.DoIOHelper;
 import core.helper.DoTextHelper;
 import core.helper.jsonparse.DoJsonNode;
-import core.helper.jsonparse.DoJsonValue;
 import core.interfaces.DoIScriptEngine;
-import core.interfaces.datamodel.DoIDataSource;
 import core.object.DoInvokeResult;
 import doext.define.do_Http_IMethod;
 import doext.define.do_Http_MAbstract;
@@ -60,7 +58,7 @@ import doext.utils.FileUploadUtil.FileUploadListener;
  * 参数解释：@_messageName字符串事件名称，@jsonResult传递事件参数对象； 获取DoInvokeResult对象方式new
  * DoInvokeResult(this.model.getUniqueKey());
  */
-public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod, DoIDataSource {
+public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod {
 
 	public do_Http_Model() throws Exception {
 		super();
@@ -117,14 +115,14 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			public void run() {
 				try {
 					String content = doRequest();
-					if(content != null){
+					if (content != null) {
 						_invokeResult.setResultText(content);
 						getEventCenter().fireEvent("success", _invokeResult);
 					}
-				}catch (SocketTimeoutException e) {
+				} catch (SocketTimeoutException e) {
 					fireFail(408, "请求超时，" + e.getMessage());
 					e.printStackTrace();
-				}catch (Exception e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 					fireFail(-1, "请求失败，" + e.getMessage());
 					DoServiceContainer.getLogEngine().writeError("Http Error!" + e.getMessage(), e);
@@ -181,24 +179,24 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	private String doGet(String url, int timeout) throws Exception {
 		String content = null;
 		HttpClient httpClient = null;
-		try{
+		try {
 			httpClient = getHttpClient(timeout);
 			HttpGet get = new HttpGet(url);
 			HttpResponse response = httpClient.execute(get);
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == 200) {
 				HttpEntity entity = response.getEntity();
-				if( null == entity) {
+				if (null == entity) {
 					throw new RuntimeException("The response has no entity.");
 				}
 				content = EntityUtils.toString(entity, "UTF-8");
-			}else{
+			} else {
 				fireFail(statusCode, "GET请求失败，状态码描述：" + response.getStatusLine().getReasonPhrase());
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			throw e;
-		}finally{
-			if(httpClient != null){
+		} finally {
+			if (httpClient != null) {
 				httpClient.getConnectionManager().shutdown();
 			}
 		}
@@ -208,7 +206,7 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	private String doPost(String url, String body, String contentType, int timeout) throws Exception {
 		String content = null;
 		HttpClient httpClient = null;
-		try{
+		try {
 			httpClient = getHttpClient(timeout);
 			HttpPost post = new HttpPost(url);
 			StringEntity se = new StringEntity(body, HTTP.UTF_8);
@@ -218,17 +216,17 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == 200) {
 				HttpEntity entity = response.getEntity();
-				if( null == entity) {
+				if (null == entity) {
 					throw new RuntimeException("The response has no entity.");
 				}
 				content = EntityUtils.toString(entity, "UTF-8");
-			}else{
+			} else {
 				fireFail(statusCode, "GET请求失败，状态码描述：" + response.getStatusLine().getReasonPhrase());
 			}
-		}catch(Exception e){
+		} catch (Exception e) {
 			throw e;
-		}finally{
-			if(httpClient != null){
+		} finally {
+			if (httpClient != null) {
 				httpClient.getConnectionManager().shutdown();
 			}
 		}
@@ -270,8 +268,7 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	}
 
 	@Override
-	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
-			final DoInvokeResult _invokeResult) throws Exception {
+	public void upload(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, final DoInvokeResult _invokeResult) throws Exception {
 		String path = _dictParas.getOneText("path", "");
 		String fileFullPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
 		final File file = new File(fileFullPath);
@@ -311,8 +308,7 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 	}
 
 	@Override
-	public void download(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine,
-			final DoInvokeResult _invokeResult) throws Exception {
+	public void download(DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, final DoInvokeResult _invokeResult) throws Exception {
 		String path = _dictParas.getOneText("path", "");
 		String _savaRelPath = DoIOHelper.getLocalFileFullPath(this.getCurrentPage().getCurrentApp(), path);
 		FinalHttp fh = new FinalHttp();
@@ -338,8 +334,8 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			}
 		});
 	}
-	
-	private void fireFail(int statusCode, String msg){
+
+	private void fireFail(int statusCode, String msg) {
 		DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
 		DoJsonNode jsonNode = new DoJsonNode();
 		jsonNode.setOneInteger("status", statusCode);
@@ -350,9 +346,9 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			e.printStackTrace();
 		}
 		getEventCenter().fireEvent("fail", _invokeResult);
-		DoServiceContainer.getLogEngine().writeInfo("Http失败","statusCode:" + statusCode + " Msg:" + msg);
+		DoServiceContainer.getLogEngine().writeInfo("Http失败", "statusCode:" + statusCode + " Msg:" + msg);
 	}
-	
+
 	private void fireProgress(long total, long curr) {
 		DoInvokeResult _invokeResult = new DoInvokeResult(getUniqueKey());
 		DoJsonNode jsonNode = new DoJsonNode();
@@ -364,26 +360,5 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod,
 			e.printStackTrace();
 		}
 		getEventCenter().fireEvent("progress", _invokeResult);
-	}
-	
-	@Override
-	public void getJsonData(final DoGetJsonCallBack _callback) {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					String _resultData = doRequest();
-					if (_resultData != null) {
-						DoJsonValue _jsonResultValue = new DoJsonValue();
-						_jsonResultValue.loadDataFromText(_resultData);
-						_callback.doGetJsonCallBack(_jsonResultValue);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					DoServiceContainer.getLogEngine().writeError("Http Error!" + e.getMessage(), e);
-				}
-			}
-		}).start();
-
 	}
 }

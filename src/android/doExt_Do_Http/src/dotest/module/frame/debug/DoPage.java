@@ -13,12 +13,6 @@ import core.object.DoUIModule;
 public class DoPage implements DoIPage {
 
 	@Override
-	public DoMultitonModule createMultitonModule(String arg0) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public DoUIModule createUIModule(DoUIContainer arg0, DoJsonNode arg1)
 			throws Exception {
 		// TODO Auto-generated method stub
@@ -107,6 +101,12 @@ public class DoPage implements DoIPage {
 	public void setData(String arg0) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public DoMultitonModule createMultitonModule(String _typeID, String _id) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
