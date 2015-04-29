@@ -25,18 +25,12 @@
     NSURLConnection *_connection;
     NSMutableData *_data;
     doInvokeResult *_invokeResult;
-    id<doGetJsonCallBack> _jsonCallBack;
-    
     // upload
     NSURLConnection *_upConnection;
-    id<doIScriptEngine> _upScriptEngine;
-    NSString *_upCallbackFuncName;
     NSInteger _upLong;
     
     // download
     NSURLConnection *_downConnection;
-    id<doIScriptEngine> _downScriptEngine;
-    NSString *_downCallbackFuncName;
     NSString *_downFilePath;
     long long _downLong;
     NSMutableData *_downData;
@@ -65,35 +59,23 @@
     _connection = nil;
     _downData = nil;
     _invokeResult = nil;
-    _jsonCallBack = nil;
     
     [_downConnection cancel];
     _downConnection = nil;
     _downData = nil;
-    _downScriptEngine = nil;
     
     [_upConnection cancel];
     _upConnection = nil;
-    _upScriptEngine = nil;
     
     //自定义的全局属性
     [super Dispose];
 }
 
 #pragma mark -
-#pragma mark - override doIDataSource
--(void) GetJsonData:(id<doGetJsonCallBack>) _callback
-{
-    _jsonCallBack = _callback;
-    [self request];
-}
-
-#pragma mark -
 #pragma mark - 同步异步方法的实现
+//upload是同步方法
 - (void)upload:(NSArray *)parms {
     doJsonNode * _dicParas = [parms objectAtIndex:0];
-    _upScriptEngine = [parms objectAtIndex:1];
-    _upCallbackFuncName = [parms objectAtIndex:2];
     NSString *path = [_dicParas GetOneText:@"path" :nil];
     if(path && path.length>0) {
         if(_upConnection)
@@ -107,10 +89,9 @@
         _upConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
     }
 }
+//download是同步方法
 - (void)download:(NSArray *)parms {
     doJsonNode * _dicParas = [parms objectAtIndex:0];
-    _downScriptEngine = [parms objectAtIndex:1];
-    _downCallbackFuncName = [parms objectAtIndex:2];
     _downFilePath = [_dicParas GetOneText:@"path" :nil];
     if(_downFilePath && _downFilePath.length>0) {
         if(_upConnection)
@@ -121,6 +102,7 @@
         _upConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
     }
 }
+//request是同步方法
 - (void)request:(NSArray *)parms
 {
     _invokeResult = [parms objectAtIndex:2];
@@ -132,8 +114,8 @@
 {
     doInvokeResult *_myInvokeResult = [[doInvokeResult alloc]init:nil];
     doJsonNode *jsonNode = [[doJsonNode alloc] init];
-    [jsonNode setValue:[NSString stringWithFormat:@"%fKB",currentSize*1.0/1024] forKey:@"currentSize"];
-    [jsonNode setValue:[NSString stringWithFormat:@"%fKB",totalSize*1.0/1024] forKey:@"totalSize"];
+    [jsonNode setValue:[NSString stringWithFormat:@"%f",currentSize*1.0/1024] forKey:@"currentSize"];
+    [jsonNode setValue:[NSString stringWithFormat:@"%f",totalSize*1.0/1024] forKey:@"totalSize"];
     [_myInvokeResult SetResultNode:jsonNode];
     return _myInvokeResult;
 }
@@ -202,7 +184,7 @@
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
     if(connection == _upConnection) {
-        [_upScriptEngine Callback:_upCallbackFuncName :[self getInvokeResult:totalBytesWritten :_upLong]];
+        [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:totalBytesWritten :_upLong]];
     }
 }
 
@@ -230,7 +212,6 @@
     else if(connection == _downConnection) {
         [_downData appendData:data];
         [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:_downData.length :_downLong]];
-//        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downData.length :_downLong]];
     }
 }
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -240,16 +221,10 @@
         
         [_invokeResult SetResultText:dataStr];
         [self.EventCenter FireEvent:@"success" :_invokeResult];
-        if(_jsonCallBack!=nil){
-            doJsonValue* value = [[doJsonValue alloc]init];
-            [value LoadDataFromText:dataStr];
-            [_jsonCallBack doGetJsonCallBack:value];
-        }
     }
     else if (connection == _downConnection) {
         [_downData writeToFile:_downFilePath atomically:YES];
-        [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:_downLong :_downLong]];
-//        [ _downScriptEngine Callback:_downCallbackFuncName :[self getInvokeResult:_downLong :_downLong]];
+        [self.EventCenter FireEvent:@"success" :[self getInvokeResult:_downLong :_downLong]];
     }
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
@@ -258,14 +233,7 @@
     [node SetOneInteger:@"status" :(int)error.code];
     [node SetOneText:@"message" :[error localizedDescription]];
     [_invokeResult SetResultNode:node];
-//    [_invokeResult SetError:[error description]];
     [self.EventCenter FireEvent:@"fail" :_invokeResult];
-    
-    if(_jsonCallBack!=nil){
-        doJsonValue* value = [[doJsonValue alloc]init];
-        [value LoadDataFromText:[error description]];
-        [_jsonCallBack doGetJsonCallBack:value];
-    }
 }
 
 @end
