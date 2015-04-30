@@ -78,6 +78,14 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod 
 			request(_dictParas, _scriptEngine, _invokeResult);
 			return true;
 		}
+		if("upload".equals(_methodName)){
+			upload(_dictParas, _scriptEngine, _invokeResult);
+			return true;
+		}
+		if("download".equals(_methodName)){
+			download(_dictParas, _scriptEngine, _invokeResult);
+			return true;
+		}
 		// ...do something
 		return super.invokeSyncMethod(_methodName, _dictParas, _scriptEngine, _invokeResult);
 	}
@@ -89,15 +97,13 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod 
 	 * @_dictParas 参数（K,V）
 	 * @_scriptEngine 当前page JS上下文环境
 	 * @_callbackFuncName 回调函数名 #如何执行异步方法回调？可以通过如下方法：
-	 *                    _scriptEngine.callback(_callbackFuncName,
-	 *                    _invokeResult);
-	 *                    参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；
-	 *                    获取DoInvokeResult对象方式new
-	 *                    DoInvokeResult(this.model.getUniqueKey());
+	 *  _scriptEngine.callback(_callbackFuncName, _invokeResult);
+	 * 参数解释：@_callbackFuncName回调函数名，@_invokeResult传递回调函数参数对象；获取DoInvokeResult对象方式new
+	 * DoInvokeResult(this.model.getUniqueKey());
 	 */
 	@Override
 	public boolean invokeAsyncMethod(String _methodName, DoJsonNode _dictParas, DoIScriptEngine _scriptEngine, String _callbackFuncName) throws Exception {
-		// ...do something
+		
 		return super.invokeAsyncMethod(_methodName, _dictParas, _scriptEngine, _callbackFuncName);
 	}
 
@@ -287,7 +293,8 @@ public class do_Http_Model extends do_Http_MAbstract implements do_Http_IMethod 
 							}
 
 							@Override
-							public void onSuccess() {
+							public void onSuccess(String result) {
+								_invokeResult.setResultText(result);
 								getEventCenter().fireEvent("success", _invokeResult);
 							}
 

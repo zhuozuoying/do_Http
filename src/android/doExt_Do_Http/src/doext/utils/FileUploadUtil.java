@@ -1,10 +1,12 @@
 package doext.utils;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.UUID;
@@ -28,7 +30,7 @@ public class FileUploadUtil {
 
 	public interface FileUploadListener {
 		void transferred(long count, long current);
-		void onSuccess();
+		void onSuccess(String result);
 		void onFailure(int statusCode,String msg);
 	}
 
@@ -88,14 +90,14 @@ public class FileUploadUtil {
 				 */
 				int res = conn.getResponseCode();
 				if (res == 200) {
-					this.listener.onSuccess();
-					/*BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+					BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
 					String r = null;
 					StringBuffer s = new StringBuffer();
 					while ((r = reader.readLine()) != null) {
 						s.append(r);
 					}
-					result = s.toString();*/
+					result = s.toString();
+					this.listener.onSuccess(result);
 				}
 			}
 		}  catch (IOException e) {
