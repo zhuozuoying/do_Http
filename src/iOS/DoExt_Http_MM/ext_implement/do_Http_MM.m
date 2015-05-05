@@ -19,6 +19,7 @@
 #import "doJsonNode.h"
 #import "doISourceFS.h"
 #import "doIDataFS.h"
+#import "doIOHelper.h"
 
 @implementation do_Http_MM
 {
@@ -80,6 +81,7 @@
     if(path && path.length>0) {
         if(_upConnection)
             [_upConnection cancel];
+        path = [doIOHelper GetLocalFileFullPath:self.CurrentPage.CurrentApp : path];
         NSMutableURLRequest *request = [self getRequest];
         [request setHTTPMethod:@"POST"];
         NSMutableData *myRequestData=[NSMutableData dataWithContentsOfFile:path];
@@ -114,8 +116,8 @@
 {
     doInvokeResult *_myInvokeResult = [[doInvokeResult alloc]init:nil];
     doJsonNode *jsonNode = [[doJsonNode alloc] init];
-    [jsonNode setValue:[NSString stringWithFormat:@"%f",currentSize*1.0/1024] forKey:@"currentSize"];
-    [jsonNode setValue:[NSString stringWithFormat:@"%f",totalSize*1.0/1024] forKey:@"totalSize"];
+    [jsonNode SetOneText:@"currentSize" :[NSString stringWithFormat:@"%f",currentSize*1.0/1024]];
+    [jsonNode SetOneText:@"totalSize" :[NSString stringWithFormat:@"%f",totalSize*1.0/1024]];
     [_myInvokeResult SetResultNode:jsonNode];
     return _myInvokeResult;
 }
@@ -216,15 +218,14 @@
 }
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    if(connection == _connection) {
+   if (connection == _downConnection) {
+        [_downData writeToFile:_downFilePath atomically:YES];
+        [self.EventCenter FireEvent:@"success" :[self getInvokeResult:_downLong :_downLong]];
+    }else{
         NSString *dataStr = [[NSString alloc] initWithData:_data encoding:NSUTF8StringEncoding];
         
         [_invokeResult SetResultText:dataStr];
         [self.EventCenter FireEvent:@"success" :_invokeResult];
-    }
-    else if (connection == _downConnection) {
-        [_downData writeToFile:_downFilePath atomically:YES];
-        [self.EventCenter FireEvent:@"success" :[self getInvokeResult:_downLong :_downLong]];
     }
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
