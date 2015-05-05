@@ -20,6 +20,7 @@
 #import "doISourceFS.h"
 #import "doIDataFS.h"
 #import "doIOHelper.h"
+#import "doUIModuleHelper.h"
 
 @implementation do_Http_MM
 {
@@ -77,6 +78,7 @@
 //upload是同步方法
 - (void)upload:(NSArray *)parms {
     doJsonNode * _dicParas = [parms objectAtIndex:0];
+    _invokeResult = [parms objectAtIndex:2];
     NSString *path = [_dicParas GetOneText:@"path" :nil];
     if(path && path.length>0) {
         if(_upConnection)
@@ -84,10 +86,31 @@
         path = [doIOHelper GetLocalFileFullPath:self.CurrentPage.CurrentApp : path];
         NSMutableURLRequest *request = [self getRequest];
         [request setHTTPMethod:@"POST"];
+        // set Content-Type in HTTP header
+        NSString* BoundaryConstant = [doUIModuleHelper stringWithUUID];
+        NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", BoundaryConstant ];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
+        
+        // post body
+        NSMutableData *body = [NSMutableData data];
+        
+        [body appendData:[[NSString stringWithFormat:@"--%@\r\n", BoundaryConstant] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; filename=\"%@\"\r\n", [path lastPathComponent]] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
         NSMutableData *myRequestData=[NSMutableData dataWithContentsOfFile:path];
-        _upLong = myRequestData.length;
-        [request setValue:[NSString stringWithFormat:@"%lu",( unsigned long)_upLong] forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:myRequestData];
+        [body appendData:myRequestData];
+        [body appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        
+        [body appendData:[[NSString stringWithFormat:@"--%@--\r\n", BoundaryConstant] dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        // setting the body of the post to the reqeust
+        [request setHTTPBody:body];
+        
+        // set the content-length
+        _upLong = body.length;
+        NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)_upLong];
+        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
         _upConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
     }
 }
@@ -95,13 +118,13 @@
 - (void)download:(NSArray *)parms {
     doJsonNode * _dicParas = [parms objectAtIndex:0];
     _downFilePath = [_dicParas GetOneText:@"path" :nil];
+    _downFilePath = [doIOHelper GetLocalFileFullPath:self.CurrentPage.CurrentApp : _downFilePath];
     if(_downFilePath && _downFilePath.length>0) {
-        if(_upConnection)
-            [_upConnection cancel];
+        if(_downConnection)
+            [_downConnection cancel];
         NSMutableURLRequest *request = [self getRequest];
         [request setHTTPMethod:@"GET"];
-//        NSString * dataFSRootPath = _downScriptEngine.CurrentApp.DataFS.RootPath;
-        _upConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
+        _downConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
     }
 }
 //request是同步方法
@@ -186,34 +209,34 @@
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
 {
     if(connection == _upConnection) {
+        //NSLog(@"upload progress:%@/%@",[NSString stringWithFormat:@"%f",totalBytesWritten*1.0/1024],[NSString stringWithFormat:@"%f",_upLong*1.0/1024]);
         [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:totalBytesWritten :_upLong]];
     }
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-    if(connection == _connection) {
-        if(!_data)
-            _data = [[NSMutableData alloc] init];
-        [_data setLength:0];
-    }
-    
-    else if(connection == _downConnection) {
+    if(connection == _downConnection) {
         if(!_downData)
             _downData = [[NSMutableData alloc] init];
         [_downData setLength:0];
         _downLong = response.expectedContentLength;
     }
+    else {
+        if(!_data)
+            _data = [[NSMutableData alloc] init];
+        [_data setLength:0];
+    }
+    
+
 }
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    if(connection == _connection) {
-        [_data appendData:data];
-    }
-    
-    else if(connection == _downConnection) {
+    if(connection == _downConnection) {
         [_downData appendData:data];
         [self.EventCenter FireEvent:@"progress" :[self getInvokeResult:_downData.length :_downLong]];
+    }else{
+        [_data appendData:data];
     }
 }
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -223,7 +246,7 @@
         [self.EventCenter FireEvent:@"success" :[self getInvokeResult:_downLong :_downLong]];
     }else{
         NSString *dataStr = [[NSString alloc] initWithData:_data encoding:NSUTF8StringEncoding];
-        
+        NSLog(@"connectionDidFinishLoading:%@",dataStr);
         [_invokeResult SetResultText:dataStr];
         [self.EventCenter FireEvent:@"success" :_invokeResult];
     }
@@ -233,6 +256,7 @@
     doJsonNode *node = [[doJsonNode alloc] init];
     [node SetOneInteger:@"status" :(int)error.code];
     [node SetOneText:@"message" :[error localizedDescription]];
+    NSLog(@"didFailWithError:%@",[error localizedDescription]);
     [_invokeResult SetResultNode:node];
     [self.EventCenter FireEvent:@"fail" :_invokeResult];
 }
