@@ -16,7 +16,7 @@
 #import "doIOHelper.h"
 #import "doIDataSource.h"
 #import "doIPage.h"
-#import "doJsonNode.h"
+#import "doJsonHelper.h"
 #import "doISourceFS.h"
 #import "doIDataFS.h"
 #import "doIOHelper.h"
@@ -77,9 +77,9 @@
 #pragma mark - 同步异步方法的实现
 //upload是同步方法
 - (void)upload:(NSArray *)parms {
-    doJsonNode * _dicParas = [parms objectAtIndex:0];
+    NSDictionary * _dicParas = [parms objectAtIndex:0];
     _invokeResult = [parms objectAtIndex:2];
-    NSString *path = [_dicParas GetOneText:@"path" :nil];
+    NSString *path = [doJsonHelper GetOneText:_dicParas :@"path" :nil];
     if(path && path.length>0) {
         if(_upConnection)
             [_upConnection cancel];
@@ -116,8 +116,8 @@
 }
 //download是同步方法
 - (void)download:(NSArray *)parms {
-    doJsonNode * _dicParas = [parms objectAtIndex:0];
-    _downFilePath = [_dicParas GetOneText:@"path" :nil];
+    NSDictionary * _dicParas = [parms objectAtIndex:0];
+    _downFilePath = [doJsonHelper GetOneText:_dicParas :@"path" :nil];
     _downFilePath = [doIOHelper GetLocalFileFullPath:self.CurrentPage.CurrentApp : _downFilePath];
     if(_downFilePath && _downFilePath.length>0) {
         if(_downConnection)
@@ -138,9 +138,9 @@
 - (doInvokeResult *)getInvokeResult:(long long)currentSize :(long long)totalSize
 {
     doInvokeResult *_myInvokeResult = [[doInvokeResult alloc]init:nil];
-    doJsonNode *jsonNode = [[doJsonNode alloc] init];
-    [jsonNode SetOneText:@"currentSize" :[NSString stringWithFormat:@"%f",currentSize*1.0/1024]];
-    [jsonNode SetOneText:@"totalSize" :[NSString stringWithFormat:@"%f",totalSize*1.0/1024]];
+    NSMutableDictionary *jsonNode = [[NSMutableDictionary alloc] init];
+    [jsonNode setObject:[NSNumber numberWithFloat:currentSize*1.0/1024] forKey:@"currentSize" ];
+    [jsonNode setObject:[NSNumber numberWithFloat:totalSize*1.0/1024] forKey:@"totalSize" ];
     [_myInvokeResult SetResultNode:jsonNode];
     return _myInvokeResult;
 }
@@ -253,11 +253,11 @@
 }
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
-    doJsonNode *node = [[doJsonNode alloc] init];
-    [node SetOneInteger:@"status" :(int)error.code];
-    [node SetOneText:@"message" :[error localizedDescription]];
+    NSMutableDictionary *jsonNode = [[NSMutableDictionary alloc] init];
+    [jsonNode setObject:[NSNumber numberWithInt:(int)error.code ] forKey:@"status" ];
+    [jsonNode setObject:[error localizedDescription] forKey:@"message"];
     NSLog(@"didFailWithError:%@",[error localizedDescription]);
-    [_invokeResult SetResultNode:node];
+    [_invokeResult SetResultNode:jsonNode];
     [self.EventCenter FireEvent:@"fail" :_invokeResult];
 }
 
